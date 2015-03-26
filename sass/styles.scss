@@ -4,3 +4,12 @@
 @import "variables";
 @import "mixins";
 @import "base";
+
+#titleBox{
+	background-color: grey;
+	margin-bottom: 30px;
+}
+
+#button{
+	display: block;
+}
