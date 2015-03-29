@@ -1,89 +1,91 @@
-<div class="row" ng-controller='AddTaskController'>    
-	<div class="small-12 columns">
-		<div class="row">
-			
-			<div class="small-8 columns">
+<div class="row" ng-controller='AddTaskController'>
+	<form data-abide>    
+		
+		<div class="small-12 columns">
+			<div class="row">
 				
-				<h1>Edit Task</h1>
-			</div>
-
-		</div>
-
-		<div class="row">
-			
-			<div class="small-8 columns">
-				<label>Name
-				<input ng-model="formData.name" type="text" placeholder="Mop">
-				
-			</div>
-
-		</div>
-		<div class="row">
-			
-			<div class="small-8 columns">
-				<label>Description
-				<input ng-model="formData.description" type="text" placeholder="Mop the floor">
-
-			</div>
-
-		</div>
-		<div class="row">
-			
-			<div class="small-8 columns">
-				<label>Assigned User
-				
-				<select ng-options="user as user.name for user in users" ng-model="formData.assignedUser">
-				 </select>
-
-			</div>
-			
-		</div>
-
-		<div class="row">
-			
-			<div class="small-8 columns">
-				<label>Deadline
-				 <datepicker>
-        				<input ng-model="formData.date" type="text">
-      			</datepicker>
-
-			</div>
-				
-		</div>
-
-		<div class="row">
-			<div class="small-8 columns">
-
-				<label>Completed</label>
-				<input ng-model = "formData.completed" id="yesButton" type="radio" value=true name="Completion" checked="checked" ><label for="yesButton">yes</label>
-			    <input ng-model = "formData.completed" id="noButton" type="radio" value=false name="Completion" ><label for="noButton">no</label>
-
-			</div>
-
+				<div class="small-8 columns">
 					
-		</div>
+					<h1>Edit Task</h1>
+				</div>
 
-		<div class="row">
-			
-			<div class="small-8 columns text-center">
-				
-				<button class="button tiny" ng-click="editTask()">Edit Task</button>
-				
 			</div>
 
-		</div>
-
-		<div class="row" ng-show="feedback.messageSet">
-			
-				<div data-alert class="small-8 columns alert-box radius" ng-class="feedback.responseClass">
+			<div class="row">
+				
+				<div class="small-8 columns">
+					<label>Name <small id="red-star">*</small>
+					<input ng-model="formData.name" type="text" placeholder="Mop" required>
 					
-					<h6>{{feedback.message}}</h6>
-					<a href="#/EditTask/{{TaskId}" class="close">&times;</a>
+				</div>
 
+			</div>
+			<div class="row">
+				
+				<div class="small-8 columns">
+					<label>Description
+					<input ng-model="formData.description" type="text" placeholder="Mop the floor">
 
 				</div>
 
-		</div>
+			</div>
+			<div class="row">
+				
+				<div class="small-8 columns">
+					<label>Assigned User
+					
+					<select ng-options="user as user.name for user in users" ng-model="formData.assignedUser">
+					 </select>
+
+				</div>
+				
+			</div>
+
+			<div class="row">
+				
+				<div class="small-8 columns">
+					<label>Deadline <small id="red-star">*</small>
+					 <datepicker>
+	        				<input ng-model="formData.date" type="text" required>
+	      			</datepicker>
+
+				</div>
+					
+			</div>
+
+			<div class="row">
+				<div class="small-8 columns">
+
+					<label>Completed</label>
+					<input ng-model = "formData.completed" id="yesButton" type="radio" value=true name="Completion" checked="checked" ><label for="yesButton">yes</label>
+				    <input ng-model = "formData.completed" id="noButton" type="radio" value=false name="Completion" ><label for="noButton">no</label>
+
+				</div>
+
+						
+			</div>
+
+			<div class="row">
+				
+				<div class="small-8 columns text-center">
+					
+					<button class="button tiny" ng-click="editTask()">Edit Task</button>
+					
+				</div>
+
+			</div>
+		</form>
+			<div class="row" ng-show="feedback.messageSet">
+				
+					<div data-alert class="small-8 columns alert-box radius" ng-class="feedback.responseClass">
+						
+						<h6>{{feedback.message}}</h6>
+						<a href="#/EditTask/{{TaskId}" class="close">&times;</a>
+
+
+					</div>
+
+			</div>
 
 		
 	</div>

@@ -13,7 +13,7 @@
 			<div class="row">
 				
 				<div class="small-8 columns">
-					<label>Name
+					<label>Name <small id="red-star">*</small>
 					<input ng-model="name" type="text" placeholder="John Doe" required>
 					<small class="error">Name is required and must be a string.</small>
 				</div>
@@ -23,8 +23,8 @@
 			<div class="row">
 				
 				<div class="small-8 columns">
-					<label>Email
-					<input ng-model="email" type="text" placeholder="JohnDoe@email.com" required>
+					<label>Email <small id="red-star">*</small>
+					<input ng-model="email" type="email" placeholder="JohnDoe@email.com" required>
 					<small class="error">An email address is required.</small>
 
 				</div>
@@ -33,7 +33,7 @@
 
 			<div class="row">
 			      <div class="small-8 columns text-center">
-			          <button class="button tiny" ng-click="addUser()">Add contact</button>
+			          <button class="button tiny" ng-click="addUser()">Add User</button>
 			      </div>
 	    	</div>
 

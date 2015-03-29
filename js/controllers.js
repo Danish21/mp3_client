@@ -247,12 +247,55 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
       console.log($routeParams.UserId);
 
       $scope.getUserUrl = global.baseurl + "/users/"+ $scope.UserId;
+      $scope.AllPendingTasks = []; 
 
       CommonData.get($scope.getUserUrl, function(response) {
               $scope.user = response.data;
               console.log($scope.user);
+              $scope.getAllPendingTasks();
+              $scope.getAllCompletedTasks();
       });
 
+
+      $scope.getAllPendingTasks = function(){
+
+        for(var i = 0; i < $scope.user.pendingTasks.length; i++){
+
+            $scope.getTaskUrl = global.baseurl + "/tasks/" + $scope.user.pendingTasks[i];
+           
+            CommonData.get( $scope.getTaskUrl,function(response) {
+                $scope.task = response.data;
+                $scope.AllPendingTasks.push($scope.task);
+            });
+
+        }
+          console.log($scope.AllPendingTasks);
+      };
+      
+      $scope.showCompletedTasks = false;
+
+      $scope.showCompleted = function(){
+
+        $scope.showCompletedTasks = true;
+
+      }
+      $scope.makeComplete =  function(TaskId){
+
+
+      }
+
+
+      $scope.getAllCompletedTasks =  function(){
+
+        $scope.getCompletedTasksUrl = global.baseurl + '/tasks/?where={assignedUser :' + $scope.UserId + '}&{completed :' + true +'}' ;
+        CommonData.get($scope.getCompletedTasksUrl, function(response){
+
+          $scope.AllCompletedTasks = response.data; 
+
+        });
+
+
+      }
    
 }]);
 
@@ -330,7 +373,7 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
                         console.log("error in adding task to user");
                       });
 
-                      
+
                   }
 
               });

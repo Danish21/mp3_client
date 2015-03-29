@@ -33,3 +33,48 @@
 			<hr>
 		</div>
 </div>
+
+<div class="row">	
+		<div class="small-12 columns">
+			<table width="100%">
+            
+            <tbody>
+      
+              <tr ng-repeat="task in AllPendingTasks">
+                <td><a href="#/tasks/{{task._id}}">{{task.name}}</a></td>
+                <td>{{task.deadline | date:'medium'}}</td>
+                <td class="text-right"> <button class="button tiny" ng-click="makeComplete(task._id)">Completed</button></td>
+
+              </tr>
+            </tbody>
+
+          </table>
+		</div>
+</div>
+
+<div class="row">	
+		<div class="small-12 columns  text-center">
+			<button class="button tiny" ng-click="showCompleted()">Show Completed</button>
+			<hr>
+		</div>
+</div>
+
+
+<div ng-show="showCompletedTasks" class="row">	
+		<div class="small-12 columns">
+			<h3>Completed Tasks </h3>
+			<hr>
+			<table width="100%">
+            
+            <tbody>
+      
+              <tr ng-repeat="task in AllCompletedTasks">
+                <td><a href="#/tasks/{{task._id}}">{{task.name}}</a></td>
+                <td>{{task.deadline | date:'medium'}}</td>
+
+              </tr>
+            </tbody>
+
+          </table>
+		</div>
+</div>
