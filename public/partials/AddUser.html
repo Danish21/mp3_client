@@ -1,32 +1,54 @@
 <div class="row" ng-controller='AddUserController'>    
 	<div class="small-12 columns">
-		<div class="row">
-			
-			<div class="small-8 columns">
+		<form data-abide>
+			<div class="row">
 				
-				<h1>Add User</h1>
+				<div class="small-8 columns">
+					
+					<h1>Add User</h1>
+				</div>
+
 			</div>
 
-		</div>
+			<div class="row">
+				
+				<div class="small-8 columns">
+					<label>Name
+					<input ng-model="name" type="text" placeholder="John Doe" required>
+					<small class="error">Name is required and must be a string.</small>
+				</div>
 
-		<div class="row">
+			</div>
+
+			<div class="row">
+				
+				<div class="small-8 columns">
+					<label>Email
+					<input ng-model="email" type="text" placeholder="JohnDoe@email.com" required>
+					<small class="error">An email address is required.</small>
+
+				</div>
+
+			</div>
+
+			<div class="row">
+			      <div class="small-8 columns text-center">
+			          <button class="button tiny" ng-click="addUser()">Add contact</button>
+			      </div>
+	    	</div>
+
+	    	<div class="row" ng-show="messageSet">
 			
-			<div class="small-8 columns">
-				<label>Name
-				<input ng-model="name" type="text" placeholder="John Doe">
+				<div data-alert class="small-8 columns alert-box radius" ng-class="responseClass">
+					
+					<h6>{{message}}</h6>
+					<a href="#/AddUser" class="close">&times;</a>
+
+
+				</div>
 
 			</div>
+	    </form>
 
-		</div>
-
-		<div class="row">
-			
-			<div class="small-8 columns">
-				<label>Email
-				<input ng-model="email" type="text" placeholder="JohnDoe@email.com">
-
-			</div>
-
-		</div>
 	</div>
 </div>

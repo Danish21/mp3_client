@@ -19,10 +19,10 @@
             </thead>
             <tbody>
       
-              <tr>
-                <td>Name</td>
-                <td>Email</td>
-                <td class="text-right">  <a class="button alert tiny" href="#/settings" >Delete</a></td>
+              <tr ng-repeat="user in users">
+                <td><a href="#/Users/{{user._id}}">{{user.name}}</a></td>
+                <td>{{user.email}}</td>
+                <td class="text-right"> <button class="button tiny" ng-click="deleteUser(user._id)">Delete User</button></td>
 
               </tr>
             </tbody>
@@ -33,6 +33,8 @@
 
 
     </div>
+
+    
 
 
   </div>

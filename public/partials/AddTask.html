@@ -30,8 +30,22 @@
 		<div class="row">
 			
 			<div class="small-8 columns">
+				<label>Assigned User
+				
+				<select ng-options="user as user.name for user in users" ng-model="assignedUser">
+				 </select>
+				 {{assignedUser}}
+			</div>
+
+		</div>
+
+		<div class="row">
+			
+			<div class="small-8 columns">
 				<label>Deadline
-				<input ng-model="deadline" type="text" placeholder="11/11/12">
+				 <datepicker>
+        				<input ng-model="date" type="text">
+      			</datepicker>
 
 			</div>
 
@@ -41,9 +55,21 @@
 			
 			<div class="small-8 columns text-center">
 				
-				<a class="button tiny success" href="#/AddUser" >Submit</a>
+				<button class="button tiny" ng-click="addTask()">Add Task</button>
 
 			</div>
+
+		</div>
+
+		<div class="row" ng-show="messageSet">
+			
+				<div data-alert class="small-8 columns alert-box radius" ng-class="responseClass">
+					
+					<h6>{{message}}</h6>
+					<a href="#/AddTask" class="close">&times;</a>
+
+
+				</div>
 
 		</div>
 	</div>

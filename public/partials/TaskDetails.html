@@ -1,0 +1,39 @@
+<div class="row">		
+		<div class="small-12 columns">	
+			<h1>Task Profile</h1>
+		</div>
+</div>
+
+<div class="row">
+		
+		<div class="small-12 columns text-right">
+			
+			<a class="button tiny success" href="#/EditTask/{{task._id}}"> Edit Task </a>
+
+		</div>
+
+</div>
+
+
+<div class="row">
+		
+		<div class="small-6 columns">
+			
+			<h3>{{task.name}}</h3>
+
+		</div>
+
+		<div class="small-6 columns">
+			
+			<h6>Deadline: {{task.deadline| date:'medium'}}</h6>
+			<h6>Completed: {{task.completed}}</h6>
+			
+		</div>
+			
+</div>
+
+<div class="row">	
+		<div class="small-12 columns">
+			<h6> Assigned To: {{task.assignedUserName}}</h6>
+		</div>
+</div>
