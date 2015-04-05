@@ -65,6 +65,7 @@ appControllers.controller('TaskController', ['$scope', '$http', 'CommonData','gl
 
     $scope.refreshTasks();
 
+    
     $scope.deleteTask= function(id){
         $scope.deleteUserUrl = global.baseurl + "/tasks/"+id;
 
