@@ -48,12 +48,15 @@ appControllers.controller('TaskController', ['$scope', '$http', 'CommonData','gl
 
     $scope.completedFilter = '?where={"completed": true}';
     $scope.sortByFilter = " ?where{ $orderby: { dateCreated : -1 } }"
+
+    $scope.skip= 0;
+    $scope.limit =10;
     // $scope.completedFilter = '?where={"completed": true}';
     // $orderby: { age : -1 } }
     $scope.refreshTasks = function(){
         $scope.sortByFilter = '&sort={' + $scope.formData.sortBy + ':' + $scope.formData.sortOrder + '}'; 
 
-        $scope.getTasksUrl = global.baseurl + "/tasks" + $scope.completedFilter + $scope.sortByFilter ;
+        $scope.getTasksUrl = global.baseurl + "/tasks" + $scope.completedFilter + $scope.sortByFilter + "&skip=" + $scope.skip  + "&limit=10";
          
         console.log($scope.getTasksUrl);
         CommonData.get( $scope.getTasksUrl,function(response) {
@@ -65,7 +68,7 @@ appControllers.controller('TaskController', ['$scope', '$http', 'CommonData','gl
 
     $scope.refreshTasks();
 
-    
+    // $scope.paginat
     $scope.deleteTask= function(id){
         $scope.deleteUserUrl = global.baseurl + "/tasks/"+id;
 
@@ -79,34 +82,66 @@ appControllers.controller('TaskController', ['$scope', '$http', 'CommonData','gl
 
     $scope.setCompletedFalse = function(){
        $scope.completedFilter = '?where={"completed": false}';
+       $scope.skip =0;
        $scope.refreshTasks();
+       
     };
 
     $scope.setCompletedTrue = function(){
       $scope.completedFilter = '?where={"completed": true}';
+      $scope.skip =0;
       $scope.refreshTasks();
+      
     };
 
     $scope.setEmptyCompletedFilter =  function(){
       $scope.completedFilter = '?';
+      $scope.skip =0;
       $scope.refreshTasks();
     };
 
     $scope.setDescending = function(){
         $scope.formData.sortOrder = -1;
+        $scope.skip =0;
         $scope.refreshTasks();
     }
 
     $scope.setAscending = function(){
         $scope.formData.sortOrder = 1;
+        $scope.skip =0;
         $scope.refreshTasks();
     }
 
     $scope.$watch('formData.sortBy', function() {
+      $scope.skip =0;
       $scope.refreshTasks();
     });
+    
+    $scope.paginateNext = function(){
 
+      // $scope.skip +=10;
+      
 
+      $scope.getTasksUrl = global.baseurl + "/tasks" + $scope.completedFilter + $scope.sortByFilter + "&skip=" + $scope.skip  + "&limit=10" + "&count=true";
+      CommonData.get( $scope.getTasksUrl,function(response) {
+            $scope.count = response.data;
+
+            if( ($scope.skip + 10) < $scope.count){
+                $scope.skip +=10;
+                $scope.refreshTasks();
+            }
+        });
+
+    }
+
+    $scope.paginatePrev = function(){
+
+      if($scope.skip != 0){
+        $scope.skip -=10;
+      }
+
+      $scope.refreshTasks();
+    }
 
 }]);
 
@@ -267,10 +302,11 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
             CommonData.get( $scope.getTaskUrl,function(response) {
                 $scope.task = response.data;
                 $scope.AllPendingTasks.push($scope.task);
+                 console.log($scope.AllPendingTasks);
             });
 
         }
-          console.log($scope.AllPendingTasks);
+         
       };
       
       $scope.showCompletedTasks = false;
@@ -288,7 +324,8 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
 
       $scope.getAllCompletedTasks =  function(){
 
-        $scope.getCompletedTasksUrl = global.baseurl + '/tasks/?where={assignedUser :' + $scope.UserId + '}&{completed :' + true +'}' ;
+        $scope.getCompletedTasksUrl = global.baseurl + '/tasks?where={assignedUser :"' + $scope.UserId.toString() + '",completed :' + true +'}' ;
+        console.log($scope.getCompletedTasksUrl);
         CommonData.get($scope.getCompletedTasksUrl, function(response){
 
           $scope.AllCompletedTasks = response.data; 
@@ -321,6 +358,8 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
           $scope.formData.date = $scope.task.deadline;
           $scope.formData.assignedUser = $scope.task.assignedUserName;
           $scope.formData.completed = $scope.task.completed;
+          $scope.prevUserId = $scope.task.assignedUser; //sotoring previous user id
+          $scope.prevStatus = $scope.task.completed;
 
       });
 
@@ -352,9 +391,31 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
 
               CommonData.get($scope.getUserUrl, function(response) {
 
-                  $scope.user = response.data;
+                  $scope.user = response.data; //
 
                   var alreadyExists = false;
+                  if( ($scope.prevUserId != $scope.newEntry.assignedUser)  ||  $scope.newEntry == completed  ){
+
+
+                      $scope.getUserUrl = global.baseurl + "/users/"+ $scope.newEntry.assignedUser;
+
+                      CommonData.get($scope.getUserUrl, function(response) {
+                            $scope.prevUser = response;
+
+                            var index = $scope.prevUser.pendingTasks.indexOf( $scope.TaskId);
+
+                            if (index > -1) {
+                               $scope.prevUser.pendingTasks.splice(index, 1);
+                            }
+
+                            CommonData.set($scope.getUserUrl,$scope.prevUser,function(response) {},
+                            function(error){});
+
+                      });   
+
+                  }
+
+
 
                   for(var i=0; i < $scope.user.pendingTasks.length; i++){ //check if added to new user
                       if($scope.user.pendingTasks[i] == $scope.response._id){
@@ -362,7 +423,7 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
                         console.log("true");
                       }
                   }
-                  if(!alreadyExists){ //if added to new 
+                  if(!alreadyExists && !$scope.newEntry.completed ){ //if added to new 
 
                       $scope.user.pendingTasks.push($scope.response._id); //give it to user
                     // console.log($scope.user);
@@ -376,6 +437,8 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
 
 
                   }
+
+
 
               });
           },
