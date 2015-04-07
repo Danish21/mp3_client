@@ -41,7 +41,7 @@
             <tbody>
       
               <tr ng-repeat="task in AllPendingTasks">
-                <td><a href="#/tasks/{{task._id}}">{{task.name}}</a></td>
+                <td><a href="#/Tasks/{{task._id}}">{{task.name}}</a></td>
                 <td>{{task.deadline | date:'medium'}}</td>
                 <td class="text-right"> <button class="button tiny" ng-click="makeComplete(task._id)">Completed</button></td>
 

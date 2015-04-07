@@ -351,8 +351,12 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
       $scope.feedback.responseClass = "success";
 
       CommonData.get($scope.getTaskUrl, function(response) {
+         
+
+
           $scope.task = response.data;
-    
+
+           
           $scope.formData.name = $scope.task.name;
           $scope.formData.description = $scope.task.description;
           $scope.formData.date = $scope.task.deadline;
@@ -365,8 +369,8 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
 
       $scope.editTask = function(){
        
-          $scope.newEntry = {
-
+          $scope.newEntry = { //make new entry
+            
              name: $scope.formData.name,
              description: $scope.formData.description,
              deadline: $scope.formData.date,
@@ -380,67 +384,74 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
           
           $scope.getUserUrl = global.baseurl + "/users/"+ $scope.formData.assignedUser._id;
 
-          CommonData.edit($scope.getTaskUrl, $scope.newEntry, function(response) {
+          CommonData.edit($scope.getTaskUrl, $scope.newEntry, function(response) { //edit new task
               console.log(response); 
               $scope.feedback.message = response.message;
               $scope.feedback.messageSet = true;
               $scope.feedback.responseClass = "success";
-
-              $scope.response = response.data;
-
-
-              CommonData.get($scope.getUserUrl, function(response) {
-
-                  $scope.user = response.data; //
-
-                  var alreadyExists = false;
-                  if( ($scope.prevUserId != $scope.newEntry.assignedUser)  ||  $scope.newEntry == completed  ){
+              $scope.edittedTask = response.data; //getting data of new task
 
 
-                      $scope.getUserUrl = global.baseurl + "/users/"+ $scope.newEntry.assignedUser;
+              CommonData.get($scope.getUserUrl, function(response) { //get new user id
+                  $scope.newUser = response.data; 
+                  CommonData.get(global.baseurl + "/users/"+ $scope.prevUserId, function(prevUserReturned) {//get prev user
 
-                      CommonData.get($scope.getUserUrl, function(response) {
-                            $scope.prevUser = response;
+                              $scope.prevUser = prevUserReturned.data; //store prev user
 
-                            var index = $scope.prevUser.pendingTasks.indexOf( $scope.TaskId);
+                              console.log("newUser: " + $scope.newUser);
+                              if( $scope.ShouldAddTaskToUser($scope.newUser, $scope.edittedTask ) ){ //if need to add task
+                                  
+                                  console.log("In adding");
+                                  $scope.newUser.pendingTasks.push($scope.edittedTask._id); //push into array
 
-                            if (index > -1) {
-                               $scope.prevUser.pendingTasks.splice(index, 1);
-                            }
+                                  CommonData.edit($scope.getUserUrl, $scope.newUser, //update the new user's pending taks
+                                  function(response){
+                                    $scope.DeleteFromPrevUser($scope.prevUser, $scope.newUser, $scope.edittedTask );
+                                  },function(error){
+                                    console.log("error in adding task to user");
+                                  });
 
-                            CommonData.set($scope.getUserUrl,$scope.prevUser,function(response) {},
-                            function(error){});
-
-                      });   
-
-                  }
-
-
-
-                  for(var i=0; i < $scope.user.pendingTasks.length; i++){ //check if added to new user
-                      if($scope.user.pendingTasks[i] == $scope.response._id){
-                        alreadyExists = true;
-                        console.log("true");
-                      }
-                  }
-                  if(!alreadyExists && !$scope.newEntry.completed ){ //if added to new 
-
-                      $scope.user.pendingTasks.push($scope.response._id); //give it to user
-                    // console.log($scope.user);
-
-                      CommonData.edit($scope.getUserUrl, $scope.user, 
-                      function(response){
-                        console.log(response);
-                      },function(error){
-                        console.log("error in adding task to user");
-                      });
-
-
-                  }
-
+                              }else{
+                                $scope.DeleteFromPrevUser($scope.prevUser, $scope.newUser, $scope.edittedTask );
+                              }
+                  });
 
 
               });
+
+              ///////////new user and add the task if it is not completed or if the user has changed
+
+              $scope.ShouldAddTaskToUser = function(newUser, task){
+
+                  //check if the new already has the task
+                   var alreadyExists = false;
+
+                    for(var i=0; i < newUser.pendingTasks.length; i++){ //check if added to new user  
+                        if(newUser.pendingTasks[i] == task._id){
+                          alreadyExists = true;
+                        }
+                    }
+
+                    return ( (!alreadyExists) && (!task.completed) );
+
+              }
+
+              $scope.DeleteFromPrevUser = function(prevUser, newUser,task ){
+
+                  if( (newUser._id!=prevUser._id) || task.completed) {
+
+                       var index = prevUser.pendingTasks.indexOf( task._id);
+                       if (index > -1) { //take it out
+                          prevUser.pendingTasks.splice(index, 1);
+                        }
+                        CommonData.edit(global.baseurl + "/users/"+ prevUser._id, prevUser,
+                        function(response) {},function(error){});
+                  }
+
+              }
+
+             
+  
           },
           function(error){
               console.log(error);
@@ -552,4 +563,68 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
 
 // }]);
 
+
+/////////////////////////////
+
+
+ // CommonData.get($scope.getUserUrl, function(response) { // to the new user 
+
+              //     $scope.user = response.data; //get new user's id
+              //     console.log("getting New User");
+              //     console.log(response.data);
+
+              //     var alreadyExists = false;
+
+              //     for(var i=0; i < $scope.user.pendingTasks.length; i++){ //check if added to new user
+              //         if($scope.user.pendingTasks[i] == $scope.response._id){
+              //           alreadyExists = true;
+              //           console.log("true");
+              //         }
+              //     }
+              //     console.log("alradyExists" + alreadyExists);
+              //     console.log("completed" + $scope.newEntry.completed);
+              //     if( (!alreadyExists) && (!$scope.newEntry.completed) ){ //if doesn't exist in newUser's pending task and is a pending task
+
+              //         $scope.user.pendingTasks.push($scope.response._id); //give it to user
+              //       // console.log($scope.user);
+              //         console.log("adding task to user")
+              //         CommonData.edit($scope.getUserUrl, $scope.user, //update the new user's pending taks
+              //         function(response){
+              //           console.log(response);
+              //         },function(error){
+              //           console.log("error in adding task to user");
+              //         });
+
+
+              //     }
+
+                  
+
+                    
+
+              //     if( ($scope.prevUserId != $scope.newEntry.assignedUser)  ||   $scope.newEntry.completed  ){//if changed user or chnaged to complete
+
+                      
+              //         $scope.getPrevUserUrl = global.baseurl + "/users/"+ $scope.prevUserId ;
+
+              //         CommonData.get($scope.getPrevUserUrl, function(response) {
+
+              //               console.log("Get previous user");
+              //               console.log(response.data);
+              //               $scope.prevUser = response.data; //get previous user
+
+              //               var index = $scope.prevUser.pendingTasks.indexOf( $scope.TaskId); //in his pending tasks look for it
+
+              //               if (index > -1) { //take it out
+              //                  $scope.prevUser.pendingTasks.splice(index, 1);
+              //               }
+
+              //               CommonData.edit($scope.getPrevUserUrl,$scope.prevUser,function(response) {},
+              //               function(error){}); //update the user
+
+              //           });   
+
+
+
+              //       }
 
