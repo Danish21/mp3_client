@@ -14,7 +14,7 @@ appControllers.controller('SettingsController', ['$scope' , 'global', function($
 appControllers.controller('UserController', ['$scope', '$http' , 'CommonData', 'global', function($scope, $http, CommonData, global) {
   
   $scope.refreshUsers = function(){
-    $scope.getUsersUrl = global.baseurl + "/users" + "?select={'_id': 1, 'email': 1, 'name':1 }";
+    $scope.getUsersUrl = global.baseurl + "/users" + "?select={'_id': 1, 'email': 1, 'name':1, 'pendingTasks':1 }";
     CommonData.get($scope.getUsersUrl, function(response) {
             $scope.users = response.data;
     });
@@ -23,14 +23,51 @@ appControllers.controller('UserController', ['$scope', '$http' , 'CommonData', '
 
   $scope.refreshUsers();
 
-  $scope.deleteUser = function(id){
+  $scope.updateTasks =function(updatedTasks){
+    console.log(updatedTasks);
+    for( var i=0; i < updatedTasks.length; i++){
+
+      CommonData.edit(global.baseurl + "/tasks/" + updatedTasks[i]._id, updatedTasks[i], function(response){console.log("updated task"); 
+        },function(error){});
+    }
+
+  }
+
+  $scope.deleteUser = function(id,pendingTasks){
 
       console.log(id);
       $scope.deleteUserUrl = global.baseurl + "/users/"+id;
-
+      $scope.copyPendingTasks = pendingTasks.slice(0);
+      console.log($scope.copyPendingTasks);
       CommonData.remove($scope.deleteUserUrl, function(response) {
-            console.log(response);
+
+
+            console.log("deleted User");
             $scope.refreshUsers();
+
+            for(var i = 0; i < $scope.copyPendingTasks.length; i++){
+
+              // $scope.getTaskUrl = global.baseurl + "/tasks/" + $scope.user.$scope.copyPendingTasks[i];
+              $scope.newTasks= [];
+              $scope.counter = 0;
+              CommonData.get( global.baseurl + "/tasks/" + $scope.copyPendingTasks[i],function(response) {
+                  console.log("got task");
+
+                  $scope.task = response.data;
+                  $scope.task.assignedUserName = "";
+                  $scope.task.assignedUser = "unassigned";
+                  $scope.newTasks.push($scope.task);
+                  $scope.counter++;
+
+                  if( $scope.counter == $scope.copyPendingTasks.length-1){
+                      $scope.updateTasks($scope.newTasks);
+                  }
+                  
+                  
+                  
+              });
+
+            }
       });
 
   };
@@ -46,7 +83,7 @@ appControllers.controller('TaskController', ['$scope', '$http', 'CommonData','gl
    // $scope.orderFilter = true;
     // $scope.completedFilter = orderProp
 
-    $scope.completedFilter = '?where={"completed": true}';
+    $scope.completedFilter = '?where={"completed": false}';
     $scope.sortByFilter = " ?where{ $orderby: { dateCreated : -1 } }"
 
     $scope.skip= 0;
@@ -69,13 +106,37 @@ appControllers.controller('TaskController', ['$scope', '$http', 'CommonData','gl
     $scope.refreshTasks();
 
     // $scope.paginat
-    $scope.deleteTask= function(id){
-        $scope.deleteUserUrl = global.baseurl + "/tasks/"+id;
+
+    $scope.DeleteFromUser = function(prevUser,task ){
+
+       
+
+          var index = prevUser.pendingTasks.indexOf( task._id);
+          if (index > -1) { //take it out
+                          prevUser.pendingTasks.splice(index, 1);
+          }
+          CommonData.edit(global.baseurl + "/users/"+ prevUser._id, prevUser,
+              function(response) {},function(error){});
+          
+
+    }
+
+    $scope.deleteTask= function(task){
+        $scope.deleteUserUrl = global.baseurl + "/tasks/"+task._id;
 
         CommonData.remove($scope.deleteUserUrl, function(response){
           console.log(response);
           $scope.refreshTasks();
+
+          if(!task.completed && task.assignedUser != "unassigned"){
+            CommonData.get(global.baseurl + "/users/" + task.assignedUser,function(response){
+              $scope.deletingUser = response.data;
+              $scope.DeleteFromUser($scope.deletingUser,task);
+            });
+          }
         })
+
+
 
     };
 
@@ -159,21 +220,24 @@ appControllers.controller('AddUserController', ['$scope', '$http', 'CommonData',
              email: $scope.email
           }
 
-          CommonData.set($scope.AddUserUrl,$scope.newEntry,function(response) {
-              console.log(response);
-              $scope.name = "";
-              $scope.email = "";
-              $scope.message = response.message;
-              $scope.messageSet = true;
-              $scope.responseClass = "success";
-          },
+          if( ($scope.name!==undefined) && ($scope.email!==undefined) ){
 
-          function(error){
-            console.log(error);
-            $scope.message = error.message;
-            $scope.messageSet = true;
-            $scope.responseClass = "alert";
-          });
+                  CommonData.set($scope.AddUserUrl,$scope.newEntry,function(response) {
+                      console.log(response);
+                      $scope.name = "";
+                      $scope.email = "";
+                      $scope.message = response.message;
+                      $scope.messageSet = true;
+                      $scope.responseClass = "success";
+                  },
+
+                  function(error){
+                    console.log(error);
+                    $scope.message = error.message;
+                    $scope.messageSet = true;
+                    $scope.responseClass = "alert";
+                  });
+          }
       
       };
 
@@ -294,7 +358,7 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
 
 
       $scope.getAllPendingTasks = function(){
-
+        $scope.AllPendingTasks= [];
         for(var i = 0; i < $scope.user.pendingTasks.length; i++){
 
             $scope.getTaskUrl = global.baseurl + "/tasks/" + $scope.user.pendingTasks[i];
@@ -313,12 +377,31 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
 
       $scope.showCompleted = function(){
 
-        $scope.showCompletedTasks = true;
+        $scope.showCompletedTasks = !$scope.showCompletedTasks;
 
       }
       $scope.makeComplete =  function(TaskId){
+  
+          var index = $scope.user.pendingTasks.indexOf( TaskId); //deleting user from pending tasks
+          if (index > -1) { //take it out
+              $scope.user.pendingTasks.splice(index, 1);
+          }
+          
 
+          CommonData.edit(global.baseurl + "/users/"+ $scope.UserId, $scope.user,
+          function(response) {
+             
+             $scope.getAllPendingTasks();
+             CommonData.get(global.baseurl + "/tasks/" + TaskId, function(response) {$scope.receivedTask = response.data; //getting task
+                  
+                  $scope.receivedTask.completed = true;
+                  CommonData.edit(global.baseurl + "/tasks/" + TaskId, $scope.receivedTask, function(response){console.log("success"); 
+                    $scope.getAllCompletedTasks();
+                  },function(error){}); //uploading it
 
+             }); 
+
+          },function(error){});
       }
 
 
@@ -356,7 +439,7 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
 
           $scope.task = response.data;
 
-           
+
           $scope.formData.name = $scope.task.name;
           $scope.formData.description = $scope.task.description;
           $scope.formData.date = $scope.task.deadline;
@@ -370,7 +453,7 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
       $scope.editTask = function(){
        
           $scope.newEntry = { //make new entry
-            
+
              name: $scope.formData.name,
              description: $scope.formData.description,
              deadline: $scope.formData.date,

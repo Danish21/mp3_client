@@ -22,7 +22,7 @@
               <tr ng-repeat="user in users">
                 <td><a href="#/Users/{{user._id}}">{{user.name}}</a></td>
                 <td>{{user.email}}</td>
-                <td class="text-right"> <button class="button tiny" ng-click="deleteUser(user._id)">Delete User</button></td>
+                <td class="text-right"> <button class="button tiny" ng-click="deleteUser(user._id, user.pendingTasks)">Delete User</button></td>
 
               </tr>
             </tbody>

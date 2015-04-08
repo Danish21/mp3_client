@@ -13,8 +13,8 @@
  	<div class="row">
  		<div class="small-5 columns">
  			  
-		      <input ng-click="setCompletedFalse()"  type="radio" name="taskState"  id="pendingButton" ><label for="pendingButton">Pending</label>
-		      <input ng-click= "setCompletedTrue()" type="radio" name="taskState"  id="completedButton" checked="checked" ><label for="completedButton">Completed</label>
+		      <input ng-click="setCompletedFalse()"  type="radio" name="taskState"  id="pendingButton" checked="checked" ><label for="pendingButton">Pending</label>
+		      <input ng-click= "setCompletedTrue()" type="radio" name="taskState"  id="completedButton"  ><label for="completedButton">Completed</label>
 		      <input ng-click= "setEmptyCompletedFilter()" type="radio" name="taskState" id="allButton" ><label for="allButton">All</label>
 		      <h6>{{taskState}}</h6>
  		</div>
@@ -70,12 +70,12 @@
               <tr ng-repeat="task in tasks">
                 
                 <td><a href="#/Tasks/{{task._id}}">{{task.name}}</a></td>
-                <td class="text-center"><h6>{{task.deadline}}</h6> 
-                	<h6>{{task.assignedUserName}}</h6>
+                <td class="text-center"><h6>{{task.deadline | date:'medium'}}</h6> 
+                	<h6>Assigned to: {{task.assignedUserName}}</h6>
                 	<!-- <h6>completed: {{task.completed}}</h6>
                 	<h6>order: {{filter.orderFilter}}</h6> -->
                 </td>
-                <td class="text-right"> <button class="button tiny" ng-click="deleteTask(task._id)">Delete Task
+                <td class="text-right"> <button class="button tiny" ng-click="deleteTask(task)">Delete Task
                 </button></td>
 
 
