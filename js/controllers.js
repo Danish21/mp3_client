@@ -5,7 +5,7 @@ appControllers.controller('SettingsController', ['$scope' , 'global', function($
     $scope.url = global.baseurl;
     $scope.setUrl = function(){
         global.baseurl = $scope.url;
-        console.log(global.baseurl);
+        //console.log(global.baseurl);
     };
 
 }]);
@@ -23,11 +23,47 @@ appControllers.controller('UserController', ['$scope', '$http' , 'CommonData', '
 
   $scope.refreshUsers();
 
-  $scope.updateTasks =function(updatedTasks){
-    console.log(updatedTasks);
+  $scope.updateCompletedTasks= function(UserId){
+
+        $scope.getCompletedTasksUrl = global.baseurl + '/tasks?where={assignedUser :"' + UserId.toString() + '",completed :' + true +'}' ;
+        
+        //console.log($scope.getCompletedTasksUrl);
+        CommonData.get($scope.getCompletedTasksUrl, function(response){
+
+            $scope.AllCompletedTasks = response.data; 
+
+            for(var i=0; i< $scope.AllCompletedTasks.length; i++ ){
+
+                $scope.AllCompletedTasks[i].assignedUserName="unassigned";
+                $scope.AllCompletedTasks[i].assignedUser = "";
+            }
+
+
+            for( var i=0; i < $scope.AllCompletedTasks.length; i++){
+
+                CommonData.edit(global.baseurl + "/tasks/" + $scope.AllCompletedTasks[i]._id, $scope.AllCompletedTasks[i], function(response){console.log("updated completed task"); 
+
+                
+              },function(error){});
+            }
+        });
+
+
+
+
+  }
+
+  $scope.updateTasks =function(updatedTasks,UserId){
+    //console.log(updatedTasks);
+    $scope.counter2 = 0;
     for( var i=0; i < updatedTasks.length; i++){
 
       CommonData.edit(global.baseurl + "/tasks/" + updatedTasks[i]._id, updatedTasks[i], function(response){console.log("updated task"); 
+
+              $scope.counter2++;
+              if( $scope.counter2 == updatedTasks.length){
+                      $scope.updateCompletedTasks(UserId);
+              }
         },function(error){});
     }
 
@@ -35,14 +71,14 @@ appControllers.controller('UserController', ['$scope', '$http' , 'CommonData', '
 
   $scope.deleteUser = function(id,pendingTasks){
 
-      console.log(id);
+      //console.log(id);
       $scope.deleteUserUrl = global.baseurl + "/users/"+id;
       $scope.copyPendingTasks = pendingTasks.slice(0);
-      console.log($scope.copyPendingTasks);
+      //console.log($scope.copyPendingTasks);
       CommonData.remove($scope.deleteUserUrl, function(response) {
 
 
-            console.log("deleted User");
+            //console.log("deleted User");
             $scope.refreshUsers();
 
             for(var i = 0; i < $scope.copyPendingTasks.length; i++){
@@ -51,16 +87,16 @@ appControllers.controller('UserController', ['$scope', '$http' , 'CommonData', '
               $scope.newTasks= [];
               $scope.counter = 0;
               CommonData.get( global.baseurl + "/tasks/" + $scope.copyPendingTasks[i],function(response) {
-                  console.log("got task");
+                  //console.log("got task");
 
                   $scope.task = response.data;
-                  $scope.task.assignedUserName = "";
-                  $scope.task.assignedUser = "unassigned";
+                  $scope.task.assignedUserName = "unassigned";
+                  $scope.task.assignedUser = "";
                   $scope.newTasks.push($scope.task);
                   $scope.counter++;
 
-                  if( $scope.counter == $scope.copyPendingTasks.length-1){
-                      $scope.updateTasks($scope.newTasks);
+                  if( $scope.counter == $scope.copyPendingTasks.length){
+                      $scope.updateTasks($scope.newTasks,id);
                   }
                   
                   
@@ -91,14 +127,14 @@ appControllers.controller('TaskController', ['$scope', '$http', 'CommonData','gl
     // $scope.completedFilter = '?where={"completed": true}';
     // $orderby: { age : -1 } }
     $scope.refreshTasks = function(){
-        $scope.sortByFilter = '&sort={' + $scope.formData.sortBy + ':' + $scope.formData.sortOrder + '}'; 
+        $scope.sortByFilter = '&sort={"' + $scope.formData.sortBy + '":' + $scope.formData.sortOrder + '}'; 
 
         $scope.getTasksUrl = global.baseurl + "/tasks" + $scope.completedFilter + $scope.sortByFilter + "&skip=" + $scope.skip  + "&limit=10";
          
-        console.log($scope.getTasksUrl);
+        //console.log($scope.getTasksUrl);
         CommonData.get( $scope.getTasksUrl,function(response) {
             $scope.tasks = response.data;
-            console.log(response.data);
+            //console.log(response.data);
         });
           //
     };
@@ -125,7 +161,7 @@ appControllers.controller('TaskController', ['$scope', '$http', 'CommonData','gl
         $scope.deleteUserUrl = global.baseurl + "/tasks/"+task._id;
 
         CommonData.remove($scope.deleteUserUrl, function(response){
-          console.log(response);
+          //console.log(response);
           $scope.refreshTasks();
 
           if(!task.completed && task.assignedUser != "unassigned"){
@@ -223,7 +259,7 @@ appControllers.controller('AddUserController', ['$scope', '$http', 'CommonData',
           if( ($scope.name!==undefined) && ($scope.email!==undefined) ){
 
                   CommonData.set($scope.AddUserUrl,$scope.newEntry,function(response) {
-                      console.log(response);
+                      //console.log(response);
                       $scope.name = "";
                       $scope.email = "";
                       $scope.message = response.message;
@@ -232,7 +268,7 @@ appControllers.controller('AddUserController', ['$scope', '$http', 'CommonData',
                   },
 
                   function(error){
-                    console.log(error);
+                    //console.log(error);
                     $scope.message = error.message;
                     $scope.messageSet = true;
                     $scope.responseClass = "alert";
@@ -280,9 +316,13 @@ appControllers.controller('AddTaskController', ['$scope', '$http', 'CommonData',
 
 
         CommonData.set($scope.addTaskUrl,$scope.newEntry,function(response) {
-            console.log(response);
+            //console.log(response);
             $scope.name = "";
             $scope.email = "";
+            $scope.date = "";
+            $scope.assignedUser._id = "";
+            $scope.assignedUser.name = "";
+            $scope.description = "";
             $scope.message = response.message;
             $scope.messageSet = true;
             $scope.responseClass = "success";
@@ -296,15 +336,15 @@ appControllers.controller('AddTaskController', ['$scope', '$http', 'CommonData',
 
                 CommonData.edit($scope.getUserUrl, $scope.user, 
                 function(response){
-                  console.log(response);
+                  // console.log(response);
                 },function(error){
-                  console.log("error in adding task to user");
+                  // console.log("error in adding task to user");
                 });
 
             });
         },
         function(error){
-            console.log(error);
+            //console.log(error);
             $scope.message = error.message;
             $scope.messageSet = true;
             $scope.responseClass = "alert";
@@ -325,13 +365,13 @@ appControllers.controller('TaskDetailController', ['$scope', '$routeParams', '$h
 
       $scope.message = "hello";
       $scope.TaskId = $routeParams.TaskId;
-      console.log($routeParams.TaskId);
+      //console.log($routeParams.TaskId);
 
       $scope.getTaskUrl = global.baseurl + "/tasks/" + $scope.TaskId;
 
       CommonData.get( $scope.getTaskUrl,function(response) {
             $scope.task = response.data;
-            console.log($scope.task);
+            // console.log($scope.task);
       });
     
    
@@ -344,14 +384,14 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
       $scope.message = "hello";
       $scope.UserId = $routeParams.UserId;
 
-      console.log($routeParams.UserId);
+      //console.log($routeParams.UserId);
 
       $scope.getUserUrl = global.baseurl + "/users/"+ $scope.UserId;
       $scope.AllPendingTasks = []; 
 
       CommonData.get($scope.getUserUrl, function(response) {
               $scope.user = response.data;
-              console.log($scope.user);
+              //console.log($scope.user);
               $scope.getAllPendingTasks();
               $scope.getAllCompletedTasks();
       });
@@ -366,7 +406,7 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
             CommonData.get( $scope.getTaskUrl,function(response) {
                 $scope.task = response.data;
                 $scope.AllPendingTasks.push($scope.task);
-                 console.log($scope.AllPendingTasks);
+                 //console.log($scope.AllPendingTasks);
             });
 
         }
@@ -395,7 +435,7 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
              CommonData.get(global.baseurl + "/tasks/" + TaskId, function(response) {$scope.receivedTask = response.data; //getting task
                   
                   $scope.receivedTask.completed = true;
-                  CommonData.edit(global.baseurl + "/tasks/" + TaskId, $scope.receivedTask, function(response){console.log("success"); 
+                  CommonData.edit(global.baseurl + "/tasks/" + TaskId, $scope.receivedTask, function(response){//console.log("success"); 
                     $scope.getAllCompletedTasks();
                   },function(error){}); //uploading it
 
@@ -408,7 +448,7 @@ appControllers.controller('UserDetailController', ['$scope', '$routeParams', '$h
       $scope.getAllCompletedTasks =  function(){
 
         $scope.getCompletedTasksUrl = global.baseurl + '/tasks?where={assignedUser :"' + $scope.UserId.toString() + '",completed :' + true +'}' ;
-        console.log($scope.getCompletedTasksUrl);
+        // console.log($scope.getCompletedTasksUrl);
         CommonData.get($scope.getCompletedTasksUrl, function(response){
 
           $scope.AllCompletedTasks = response.data; 
@@ -468,7 +508,7 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
           $scope.getUserUrl = global.baseurl + "/users/"+ $scope.formData.assignedUser._id;
 
           CommonData.edit($scope.getTaskUrl, $scope.newEntry, function(response) { //edit new task
-              console.log(response); 
+              // console.log(response); 
               $scope.feedback.message = response.message;
               $scope.feedback.messageSet = true;
               $scope.feedback.responseClass = "success";
@@ -481,17 +521,17 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
 
                               $scope.prevUser = prevUserReturned.data; //store prev user
 
-                              console.log("newUser: " + $scope.newUser);
+                              //console.log("newUser: " + $scope.newUser);
                               if( $scope.ShouldAddTaskToUser($scope.newUser, $scope.edittedTask ) ){ //if need to add task
                                   
-                                  console.log("In adding");
+                                  //console.log("In adding");
                                   $scope.newUser.pendingTasks.push($scope.edittedTask._id); //push into array
 
                                   CommonData.edit($scope.getUserUrl, $scope.newUser, //update the new user's pending taks
                                   function(response){
                                     $scope.DeleteFromPrevUser($scope.prevUser, $scope.newUser, $scope.edittedTask );
                                   },function(error){
-                                    console.log("error in adding task to user");
+                                    //console.log("error in adding task to user");
                                   });
 
                               }else{
@@ -537,7 +577,7 @@ appControllers.controller('EditTaskController', ['$scope', '$routeParams', '$htt
   
           },
           function(error){
-              console.log(error);
+              // console.log(error);
               $scope.feedback.message = error.message;
               $scope.feedback.messageSet = true;
               $scope.feedback.responseClass = "alert";
